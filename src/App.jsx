@@ -1,10 +1,15 @@
 import './App.css'
+import CreateNote from './components/CreateNote'
+import Header from './components/Header'
+import NoteList from './components/NoteList'
 
 function App() {
 
   return (
     <div>
-      <h1 className="text-4xl font-bold">Notes</h1>
+      <Header />
+      <CreateNote />
+      <NoteList />
     </div>
   )
 }
