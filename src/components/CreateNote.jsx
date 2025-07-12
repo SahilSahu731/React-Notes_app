@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { NotesContext } from '../context/NotesContext';
 
 const CreateNote = () => {
@@ -14,10 +14,6 @@ const CreateNote = () => {
     setContent('');
   };
 
-  useEffect(() => {
-    // This effect can be used to log notes or perform side effects when notes change
-    console.log('Notes updated:', notes);
-  }, [notes]);
 
   return (
     <div className='flex'>
