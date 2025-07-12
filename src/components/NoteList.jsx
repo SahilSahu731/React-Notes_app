@@ -13,7 +13,7 @@ const NoteList = () => {
       <div className="notes-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
         {notes.length > 0 ? (
           notes.reverse().map((note) => (
-            <Note key={note.id} heading={note.heading} content={note.data} />
+            <Note key={note.id} id={note.id} heading={note.heading} content={note.data} />
           ))
         ) : (
           <p className='text-gray-500 text-xl '>No notes available</p>

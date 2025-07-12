@@ -24,7 +24,8 @@ export const NotesProvider = ({ children }) => {
     }
 
   const deleteNote = (id) => {
-    setNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));
+    setNotes((prevNotes) => prevNotes.filter(note => note.id !== id));
+    // No need to update localStorage here; useEffect will handle it after state updates
   };
   
   useEffect(() => {
