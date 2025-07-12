@@ -51,8 +51,26 @@ const CreateNote = () => {
       </div>
 
     </div>
-    <div className='m-2 border-2 w-1/3 hidden xl:flex border-gray-500 p-8 rounded-lg shadow-lg'>
-      {/* will make it later */}
+    <div className='m-2 border-2 w-1/3 hidden xl:flex border-gray-500 p-8 rounded-lg shadow-lg bg-gradient-to-br from-blue-500 to-blue-200'>
+      <div className='w-full'>
+        <h2 className='text-2xl font-bold text-blue-700 mb-6 text-center'>Note Statistics</h2>
+        <div className='flex flex-col gap-6'>
+          <div className='flex items-center justify-between bg-white rounded-lg shadow p-4'>
+            <span className='text-lg text-gray-600 font-medium'>Total Notes</span>
+            <span className='text-2xl font-bold text-blue-600'>{notes.length}</span>
+          </div>
+          <div className='flex items-center justify-between bg-white rounded-lg shadow p-4'>
+            <span className='text-lg text-gray-600 font-medium'>Total Characters</span>
+            <span className='text-2xl font-bold text-blue-600'>{notes.reduce((acc, note) => acc + (note.data?.length || 0), 0)}</span>
+          </div>
+          <div className='flex items-center justify-between bg-white rounded-lg shadow p-4'>
+            <span className='text-lg text-gray-600 font-medium'>Last Updated</span>
+            <span className='text-md font-semibold text-blue-500'>
+              {notes.length > 0 ? new Date(Math.max(...notes.map(n => n.id))).toLocaleString() : 'N/A'}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
     </div>
   )
