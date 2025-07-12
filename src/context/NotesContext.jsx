@@ -1,27 +1,35 @@
-import { createContext, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 
 // 1️⃣ Create Context
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const NotesContext = createContext();
 
 // 2️⃣ Provider Component
 export const NotesProvider = ({ children }) => {
-  const [notes, setNotes] = useState([]);
+  const [notes, setNotes] = useState(() => {
+    // Load notes from localStorage if available
+    const savedNotes = localStorage.getItem('notes');
+    return savedNotes ? JSON.parse(savedNotes) : [];
+  });
 
   // Add note with heading and data, matching CreateNote component
-  const addNote = (title, content) => {
-    const newNote = {
-      id: Date.now(),
-      heading: title,
-      data: content
-    };  
-    setNotes((prevNotes) => [...prevNotes, newNote]);
-  };
+  function addNote(title, content) {
+        const newNote = {
+            id: Date.now(),
+            heading: title,
+            data: content
+        };
+        setNotes((prevNotes) => [...prevNotes, newNote]);
+    }
 
   const deleteNote = (id) => {
     setNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));
   };
   
+  useEffect(() => {
+    localStorage.setItem('notes', JSON.stringify(notes));
+  }, [notes]);
 
   return (
     <NotesContext.Provider value={{ notes, addNote, deleteNote }}>
