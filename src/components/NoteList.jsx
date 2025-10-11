@@ -16,7 +16,7 @@ const NoteList = () => {
             <Note key={note.id} id={note.id} heading={note.heading} content={note.data} />
           ))
         ) : (
-          <p className='text-gray-500 text-xl '>No notes available</p>
+          <p className='text-gray-500 text-xl '>No notes available. Please create a new note.</p>
         )}
       </div>
     </div>
