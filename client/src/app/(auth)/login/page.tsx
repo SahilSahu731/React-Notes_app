@@ -1,112 +1,115 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { authApi, type LoginData } from '@/lib/auth'
+import { useAuthStore } from '@/lib/store'
+import toast from 'react-hot-toast'
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+  const router = useRouter()
+  const { setAuth, setLoading, isLoading } = useAuthStore()
+  const [error, setError] = useState('')
+
+  const form = useForm<LoginData>({
+    defaultValues: {
+      email: '',
+      password: ''
+    }
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Placeholder for login logic
-    console.log('Login attempt:', formData)
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+  const onSubmit = async (data: LoginData) => {
+    try {
+      setLoading(true)
+      setError('')
+      
+      const response = await authApi.login(data)
+      
+      if (response.success) {
+        setAuth(response.user, response.accessToken)
+        toast.success('Welcome back!')
+        // router.push('/dashboard')
+      }
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Login failed'
+      setError(message)
+      toast.error(message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">
+      <h2 className="text-2xl font-bold text-center mb-6">
         Sign in to your account
       </h2>
       
-      <form className="space-y-6" onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email address
-          </label>
-          <input
-            id="email"
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
             name="email"
-            type="email"
-            required
-            value={formData.email}
-            onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Enter your email"
+            rules={{ 
+              required: 'Email is required',
+              pattern: { value: /^[^@]+@[^@]+\.[^@]+$/, message: 'Invalid email address' }
+            }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="Enter your email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <input
-            id="password"
+          <FormField
+            control={form.control}
             name="password"
-            type="password"
-            required
-            value={formData.password}
-            onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Enter your password"
+            rules={{ required: 'Password is required' }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="Enter your password" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-              Remember me
-            </label>
+          <div className="flex items-center justify-between text-sm">
+            <Link href="#" className="text-muted-foreground hover:text-primary">
+              Forgot password?
+            </Link>
           </div>
 
-          <div className="text-sm">
-            <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
-              Forgot your password?
-            </a>
-          </div>
-        </div>
+          {error && (
+            <div className="text-sm text-destructive text-center">
+              {error}
+            </div>
+          )}
 
-        <button
-          type="submit"
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Sign in
-        </button>
-      </form>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Signing in...' : 'Sign in'}
+          </Button>
+        </form>
+      </Form>
 
-      <div className="mt-6">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Don&apos;t have an account?</span>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <Link
-            href="/sign-up"
-            className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Create new account
+      <div className="mt-6 text-center">
+        <p className="text-sm text-muted-foreground">
+          Don&apos;t have an account?{' '}
+          <Link href="/sign-up" className="font-medium text-primary hover:underline">
+            Create account
           </Link>
-        </div>
+        </p>
       </div>
     </div>
   )
