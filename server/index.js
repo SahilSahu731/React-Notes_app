@@ -7,6 +7,7 @@ import cors from "cors";
 import rateLimit from "express-rate-limit";
 import connectDB from './config/db.js';
 import authRoutes from "./routes/auth.route.js";
+import adminRoutes from "./routes/admin.route.js";
 
 const app = express();
 
@@ -19,6 +20,7 @@ const limiter = rateLimit({ windowMs: 15*60*1000, max: 100 });
 app.use(limiter);
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/admin", adminRoutes);
 
 
 // Connect to MongoDB database

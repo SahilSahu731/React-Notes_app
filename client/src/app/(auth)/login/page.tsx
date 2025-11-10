@@ -33,7 +33,7 @@ export default function LoginPage() {
       if (response.success) {
         setAuth(response.user, response.accessToken)
         toast.success('Welcome back!')
-        // router.push('/dashboard')
+        router.push('/dashboard')
       }
     } catch (err: any) {
       const message = err.response?.data?.message || 'Login failed'
