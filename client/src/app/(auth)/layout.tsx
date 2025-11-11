@@ -3,7 +3,8 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { useAuthStore } from '@/lib/store'
-import { redirect } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function AuthLayout({
   children,
@@ -11,9 +12,20 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
 
-  const {user} = useAuthStore();
+  const {user, accessToken, hasHydrated} = useAuthStore();
+  const router = useRouter();
 
-  if (user) redirect('/dashboard');
+  useEffect(() => {
+      if (!hasHydrated) return; // Wait for hydration
+      
+      if (user && accessToken) {
+        router.push("/dashboard");
+      }
+    }, [user, accessToken, hasHydrated, router]);
+  
+    if (!hasHydrated) {
+      return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
