@@ -20,10 +20,12 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Image from "next/image";
+import ImageDialog from "@/components/ImageDialog";
 
 export default function ProfilePage() {
   const { user: storeUser, setAuth } = useAuthStore();
   const [user, setUser] = useState(storeUser);
+  const [isIamgeDialogOpen, setIsIamgeDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const fetchProfile = async () => {
@@ -34,7 +36,7 @@ export default function ProfilePage() {
       if (storeUser) {
         setAuth(response.user, useAuthStore.getState().accessToken!);
       }
-    } catch (error: any) {
+    } catch (error: any) {  // eslint-disable-line
       toast.error(error.response?.data?.message || "Failed to load profile");
     } finally {
       setLoading(false);
@@ -58,7 +60,7 @@ export default function ProfilePage() {
       {/* Header Card */}
       <Card className="bg-linear-to-br from-card/40 to-card/20 backdrop-blur-xl border-border/30">
         <CardHeader className="text-center">
-          <div className="mx-auto w-28 h-28 relative group cursor-pointer bg-linear-to-br from-primary/20 to-secondary/20 rounded-2xl flex items-center justify-center mb-6 shadow-2xl">
+          <div className="mx-auto w-28 h-28 relative group cursor-pointer bg-linear-to-br from-primary/20 to-secondary/20 rounded-2xl flex items-center justify-center mb-6 shadow-2xl" onClick={() => setIsIamgeDialogOpen(true)}>
             <div className="group-hover:opacity-30 ">
               {user.avatar ===
               "https://api.dicebear.com/7.x/initials/svg?seed=User" ? (
@@ -273,6 +275,7 @@ export default function ProfilePage() {
         </Button>
         <Button variant="outline">Edit Profile</Button>
       </div>
+      <ImageDialog isIamgeDialogOpen={isIamgeDialogOpen} setIsIamgeDialogOpen={setIsIamgeDialogOpen} />
     </div>
   );
 }
