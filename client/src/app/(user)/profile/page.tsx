@@ -44,58 +44,64 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header Card */}
-      <Card>
+      <Card className="bg-linear-to-br from-card/40 to-card/20 backdrop-blur-xl border-border/30">
         <CardHeader className="text-center">
-          <div className="mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-            <User className="w-12 h-12 text-primary" />
+          <div className="mx-auto w-28 h-28 bg-linear-to-br from-primary/20 to-secondary/20 rounded-2xl flex items-center justify-center mb-6 shadow-2xl">
+            <User className="w-14 h-14 text-primary" />
           </div>
-          <CardTitle className="text-2xl">{user.name}</CardTitle>
-          <p className="text-muted-foreground">@{user.username}</p>
-          <div className="flex justify-center gap-2 mt-2">
-            <Badge variant={user.role === 'admin' ? 'destructive' : 'secondary'}>
+          <CardTitle className="text-3xl font-bold bg-linear-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">{user.name}</CardTitle>
+          <p className="text-muted-foreground text-lg">@{user.username}</p>
+          <div className="flex justify-center gap-3 mt-4">
+            <Badge variant={user.role === 'admin' ? 'destructive' : 'secondary'} className="px-3 py-1 text-xs font-semibold">
               {user.role}
             </Badge>
-            <Badge variant="outline">{user.plan}</Badge>
-            {user.isVerified && <Badge className="bg-green-500">Verified</Badge>}
+            <Badge variant="outline" className="px-3 py-1 text-xs font-semibold border-primary/30">{user.plan}</Badge>
+            {user.isVerified && <Badge className="bg-green-500/80 px-3 py-1 text-xs font-semibold">Verified</Badge>}
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-center text-muted-foreground">{user.bio}</p>
+          <p className="text-center text-muted-foreground text-lg">{user.bio}</p>
         </CardContent>
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <FileText className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-            <div className="text-2xl font-bold">{user.noteCount}</div>
-            <div className="text-sm text-muted-foreground">Notes Created</div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-linear-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border-blue-500/20 hover:border-blue-500/40 transition-all duration-300">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 bg-linear-to-br from-blue-500/20 to-blue-600/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-blue-400" />
+            </div>
+            <div className="text-3xl font-bold text-blue-400">{user.noteCount}</div>
+            <div className="text-sm text-muted-foreground font-medium">Notes Created</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6 text-center">
-            <HardDrive className="w-8 h-8 text-green-500 mx-auto mb-2" />
-            <div className="text-2xl font-bold">{(user.totalStorageUsed / 1024).toFixed(1)}KB</div>
-            <div className="text-sm text-muted-foreground">Storage Used</div>
+        <Card className="bg-linear-to-br from-green-500/10 to-green-600/5 backdrop-blur-xl border-green-500/20 hover:border-green-500/40 transition-all duration-300">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 bg-linear-to-br from-green-500/20 to-green-600/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <HardDrive className="w-8 h-8 text-green-400" />
+            </div>
+            <div className="text-3xl font-bold text-green-400">{(user.totalStorageUsed / 1024).toFixed(1)}KB</div>
+            <div className="text-sm text-muted-foreground font-medium">Storage Used</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6 text-center">
-            <Users className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-            <div className="text-2xl font-bold">{user.followers.length + user.following.length}</div>
-            <div className="text-sm text-muted-foreground">Connections</div>
+        <Card className="bg-linear-to-br from-purple-500/10 to-purple-600/5 backdrop-blur-xl border-purple-500/20 hover:border-purple-500/40 transition-all duration-300">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 bg-linear-to-br from-purple-500/20 to-purple-600/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-purple-400" />
+            </div>
+            <div className="text-3xl font-bold text-purple-400">{user.followers.length + user.following.length}</div>
+            <div className="text-sm text-muted-foreground font-medium">Connections</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Account Information */}
-      <Card>
+      <Card className="bg-card/30 backdrop-blur-xl border-border/30">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <User className="w-6 h-6 text-primary" />
             Account Information
           </CardTitle>
         </CardHeader>
@@ -141,10 +147,10 @@ export default function ProfilePage() {
       </Card>
 
       {/* Preferences */}
-      <Card>
+      <Card className="bg-card/30 backdrop-blur-xl border-border/30">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <Settings className="w-6 h-6 text-secondary" />
             Preferences
           </CardTitle>
         </CardHeader>
@@ -171,9 +177,9 @@ export default function ProfilePage() {
       </Card>
 
       {/* AI Settings */}
-      <Card>
+      <Card className="bg-linear-to-br from-primary/5 to-secondary/5 backdrop-blur-xl border-primary/20">
         <CardHeader>
-          <CardTitle>AI Assistant</CardTitle>
+          <CardTitle className="text-xl bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">AI Assistant</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
