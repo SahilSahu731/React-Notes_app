@@ -80,3 +80,25 @@ export const getUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const changeProfilePicture = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const file = req.file;
+
+    // Upload image to Cloudinary
+    const result = await cloudinary.uploader.upload(file.path);
+
+    // Update user profile picture
+    user.profilePicture = result.secure_url;
+    await user.save();
+
+    res.json({ success: true, profilePicture: user.profilePicture });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
