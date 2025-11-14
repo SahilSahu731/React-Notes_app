@@ -31,5 +31,10 @@ export const authApi = {
   getProfile: async () => {
     const response = await api.get('/auth/profile')
     return response.data
+  },
+
+  changeProfilePicture: async (data: FormData) => {
+    const response = await api.post('/user/profile/change', data)
+    return response.data
   }
 }

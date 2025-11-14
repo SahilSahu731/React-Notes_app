@@ -20,7 +20,6 @@ export type User = {
   password?: string;
   followers: string[];
   following: string[];
-  sessions: any[];
   ai: {
     model: string;
     tone: string;
@@ -56,6 +55,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       hasHydrated: false,
       setAuth: (user, token) => set({ user, accessToken: token, isLoading: false }),
+      setProfilePicture: (profilePicture: string) => set({ user: { ...get().user!, avatar: profilePicture } }),
       setLoading: (loading) => set({ isLoading: loading }),
       logout: () => set({ user: null, accessToken: null, isLoading: false }),
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),

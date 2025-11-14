@@ -4,15 +4,21 @@ import { Button } from './ui/button'
 import { useAuthStore } from '@/lib/store'
 import Image from 'next/image'
 import { User } from 'lucide-react'
+import { authApi } from '@/lib/auth'
 
 const ImageDialog = ({isIamgeDialogOpen, setIsIamgeDialogOpen} : {isIamgeDialogOpen: boolean, setIsIamgeDialogOpen: React.Dispatch<React.SetStateAction<boolean>>}) => {
 
   const {user} = useAuthStore((state) => state)
+  const {setProfilePicture} = useAuthStore((state) => state)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [image, setImage] = useState<string | null>(null)
 
   const changeProfilehandler = async () =>{
     if(!image) return;
-    console.log(image)
+    const formData = new FormData()
+    formData.append('avatar', selectedFile!)
+    const response = await authApi.changeProfilePicture(formData)
+    setProfilePicture(response.avatar)
   }
 
   return (
@@ -30,7 +36,10 @@ const ImageDialog = ({isIamgeDialogOpen, setIsIamgeDialogOpen} : {isIamgeDialogO
              }
           </div>
           <div className='flex items-center justify-center'>
-            <input type='file' className='hidden' id='image' onChange={(e) => setImage(URL.createObjectURL(e.target.files![0]))} />
+            <input type='file' className='hidden' id='image' onChange={(e) => {
+              setSelectedFile(e.target.files![0])
+              setImage(URL.createObjectURL(e.target.files![0]))
+            }} />
             <label htmlFor='image' className='cursor-pointer text-white text-lg p-2 border rounded-xl border-white'>Choose Image</label>
           </div>
           <DialogFooter>
