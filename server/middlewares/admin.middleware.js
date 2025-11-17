@@ -1,4 +1,4 @@
-import { verifyAccessToken } from "../utils/jwt.js";
+import { verifyToken } from "../utils/jwt.js";
 import User from "../models/user.model.js";
 
 export const adminMiddleware = async (req, res, next) => {
@@ -9,7 +9,7 @@ export const adminMiddleware = async (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
-    const decoded = verifyAccessToken(token);
+    const decoded = verifyToken(token);
     const user = await User.findById(decoded.id);
     
     if (!user || user.role !== "admin") {

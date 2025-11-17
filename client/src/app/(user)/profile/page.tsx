@@ -44,6 +44,7 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
+    
     fetchProfile();
   }, []);
 
@@ -143,7 +144,7 @@ export default function ProfilePage() {
               <Users className="w-8 h-8 text-purple-400" />
             </div>
             <div className="text-3xl font-bold text-purple-400">
-              {user.followers.length + user.following.length}
+              {/* {user.followers.length + user.following.length} */}
             </div>
             <div className="text-sm text-muted-foreground font-medium">
               Connections
@@ -217,23 +218,23 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <div className="font-medium mb-2">Theme</div>
-              <Badge variant="outline">{user.preferences.theme}</Badge>
+              {/* <Badge variant="outline">{user.preferences.theme}</Badge> */}
             </div>
             <div>
               <div className="font-medium mb-2">Language</div>
-              <Badge variant="outline">{user.preferences.language}</Badge>
+              {/* <Badge variant="outline">{user.preferences.language}</Badge> */}
             </div>
             <div className="md:col-span-2">
               <div className="font-medium mb-2">Keyboard Shortcuts</div>
               <div className="flex gap-2 flex-wrap">
                 <Badge variant="secondary">
-                  Save: {user.preferences.shortcuts.save}
+                  {/* Save: {user.preferences.shortcuts.save} */}
                 </Badge>
                 <Badge variant="secondary">
-                  New Note: {user.preferences.shortcuts.newNote}
+                  {/* New Note: {user.preferences.shortcuts.newNote} */}
                 </Badge>
                 <Badge variant="secondary">
-                  Search: {user.preferences.shortcuts.search}
+                  {/* Search: {user.preferences.shortcuts.search} */}
                 </Badge>
               </div>
             </div>
@@ -252,17 +253,17 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <div className="font-medium mb-1">Model</div>
-              <Badge variant="outline">{user.ai.model}</Badge>
+              {/* <Badge variant="outline">{user.ai.model}</Badge> */}
             </div>
             <div>
               <div className="font-medium mb-1">Tone</div>
-              <Badge variant="outline">{user.ai.tone}</Badge>
+              {/* <Badge variant="outline">{user.ai.tone}</Badge> */}
             </div>
             <div>
               <div className="font-medium mb-1">History</div>
-              <Badge variant={user.ai.useHistory ? "default" : "secondary"}>
+              {/* <Badge variant={user.ai.useHistory ? "default" : "secondary"}>
                 {user.ai.useHistory ? "Enabled" : "Disabled"}
-              </Badge>
+              </Badge> */}
             </div>
           </div>
         </CardContent>

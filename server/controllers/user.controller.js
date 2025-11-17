@@ -1,6 +1,6 @@
 import User from "../models/user.model.js";
 import { validationResult } from "express-validator";
-import { signAccessToken } from "../utils/jwt.js";
+import { generateToken } from "../utils/jwt.js";
 
 export const register = async (req, res) => {
   try {
@@ -15,7 +15,7 @@ export const register = async (req, res) => {
     await user.save();
 
     // Create verification token (one-time token) - use JWT or DB token
-    const verifyToken = signAccessToken({ id: user._id }); // or custom token
+    const verifyToken = generateToken({ id: user._id }); // or custom token
     // const verifyUrl = `${process.env.APP_URL}/auth/verify-email?token=${verifyToken}`;
 
     // await sendEmail({
@@ -52,7 +52,7 @@ export const login = async (req, res) => {
 
     // if (!user.isVerified) return res.status(403).json({ message: "Please verify your email" });
 
-    const accessToken = signAccessToken({ id: user._id });
+    const accessToken = generateToken({ id: user._id });
 
     // Set refresh token cookie (HttpOnly)
     res.cookie("token", accessToken, {
@@ -97,6 +97,7 @@ export const changeProfilePicture = async (req, res) => {
 
     res.json({ success: true, profilePicture: user.profilePicture });
   } catch (err) {
+    console.log(err)
     res.status(500).json({ message: "Server error" });
   }
 };

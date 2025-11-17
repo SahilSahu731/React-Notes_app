@@ -6,6 +6,8 @@ import upload from "../middlewares/multer.js";
 const router = express.Router();
 
 router.get('/profile', protect, getUser);
+router.post("/profile/change",protect, upload.single("avatar"), changeProfilePicture);
+
 
 
 export default router;
