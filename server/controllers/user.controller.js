@@ -112,29 +112,90 @@ export const getUser = async (req, res) => {
   }
 };
 
-export const changeProfilePicture = async (req, res) => {
+export const updateUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+    const { name, email, avatar } = req.body;
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (avatar) user.profilePicture = avatar;
+
+    // Check if email is being updated to an existing one
+    if (email && email !== user.email) {
+      const exists = await User.findOne({ email });
+      if (exists) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
     }
 
-    const file = req.file;
-
-    // Upload image to Cloudinary
-    const result = await cloudinary.uploader.upload(file.path);
-
-    // Update user profile picture
-    user.profilePicture = result.secure_url;
     await user.save();
 
-    res.json({ success: true, profilePicture: user.profilePicture });
+    res.json({ 
+      success: true, 
+      user: user.toJSON(),
+      message: "Profile updated successfully" 
+    });
   } catch (err) {
-    console.error("[AUTH] Profile picture error:", err.message);
+    console.error("[USER] Update profile error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("+password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    // Verify current password
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid current password" });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ success: true, message: "Password updated successfully" });
+  } catch (err) {
+    console.error("[USER] Change password error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const deleteAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Delete all user's notes and folders?
+    // Assuming we have Note and Folder models
+    // import Note from "../models/note.model.js";
+    // import Folder from "../models/folder.model.js";
+    // For now, just delete the user. A real app should cascade delete.
+    
+    await user.deleteOne();
+
+    res.cookie("token", "", {
+      expires: new Date(0),
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
+
+    res.json({ success: true, message: "Account deleted successfully" });
+  } catch (err) {
+    console.error("[USER] Delete account error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
 };

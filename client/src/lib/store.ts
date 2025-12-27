@@ -42,6 +42,7 @@ type AuthState = {
   isLoading: boolean;
   hasHydrated: boolean;
   setAuth: (user: User, token: string) => void;
+  setUser: (user: User) => void;
   setLoading: (loading: boolean) => void;
   logout: () => void;
   setHasHydrated: (hasHydrated: boolean) => void;
@@ -55,6 +56,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       hasHydrated: false,
       setAuth: (user, token) => set({ user, accessToken: token, isLoading: false }),
+      setUser: (user) => set({ user }),
       setProfilePicture: (profilePicture: string) => set({ user: { ...get().user!, avatar: profilePicture } }),
       setLoading: (loading) => set({ isLoading: loading }),
       logout: () => set({ user: null, accessToken: null, isLoading: false }),

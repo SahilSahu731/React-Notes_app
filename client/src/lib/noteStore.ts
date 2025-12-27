@@ -1,40 +1,45 @@
-
 import { create } from "zustand";
 import { getNotes, createNote, updateNote, deleteNote, restoreNote, Note } from "./noteService";
+import { useFolderStore } from "./folderStore";
 
 interface NoteState {
   notes: Note[];
   isLoading: boolean;
   filter: 'active' | 'archived' | 'trash';
+  selectedFolderId: string | null;
   fetchNotes: (search?: string) => Promise<void>;
   addNote: (note: Partial<Note>) => Promise<void>;
   editNote: (id: string, note: Partial<Note>) => Promise<void>;
   removeNote: (id: string, permanent?: boolean) => Promise<void>;
   restoreNoteFromTrash: (id: string) => Promise<void>;
   setFilter: (filter: 'active' | 'archived' | 'trash') => void;
+  setSelectedFolder: (folderId: string | null) => void;
 }
+
+// Helper to refresh folder counts
+const refreshFolderCounts = () => {
+  useFolderStore.getState().fetchFolders();
+};
 
 export const useNoteStore = create<NoteState>((set, get) => ({
   notes: [],
   isLoading: false,
   filter: 'active',
+  selectedFolderId: null,
   
   fetchNotes: async (search?: string) => {
     set({ isLoading: true });
     try {
-      const { filter } = get();
-      let isTrashed = false;
-      let isArchived = false; // Default to undefined (server handles logic) or explicit false
+      const { filter, selectedFolderId } = get();
       
-      if (filter === 'trash') isTrashed = true;
-      if (filter === 'archived') isArchived = true;
-
-      // Note: server logic: 
-      // if isTrashed=true -> returns trash.
-      // if isArchived=true -> returns archived.
-      // default: active notes.
+      const params: any = {};
       
-      const res = await getNotes(filter === 'trash' ? true : undefined, filter === 'archived' ? true : undefined, search);
+      if (filter === 'trash') params.isTrashed = true;
+      if (filter === 'archived') params.isArchived = true;
+      if (search) params.search = search;
+      if (selectedFolderId) params.folder = selectedFolderId;
+      
+      const res = await getNotes(params);
       set({ notes: res.notes, isLoading: false });
     } catch (error) {
       console.error(error);
@@ -44,11 +49,23 @@ export const useNoteStore = create<NoteState>((set, get) => ({
 
   addNote: async (note) => {
     try {
-      const res = await createNote(note);
+      const { selectedFolderId, filter } = get();
+      
+      // Include folder when creating, but allow override if provided in note data
+      const noteData = {
+        folder: selectedFolderId || undefined,
+        ...note,
+      };
+      
+      const res = await createNote(noteData);
+      
       // Only add to state if we are in 'active' view
-      if (get().filter === 'active') {
-          set((state) => ({ notes: [res.note, ...state.notes] }));
+      if (filter === 'active') {
+        set((state) => ({ notes: [res.note, ...state.notes] }));
       }
+      
+      // Refresh folder counts
+      refreshFolderCounts();
     } catch (error) {
       console.error(error);
     }
@@ -60,15 +77,28 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       set((state) => ({
         notes: state.notes.map((n) => (n._id === id ? res.note : n)),
       }));
-       // Validation to remove from current view if status changed (e.g. archived)
-       const { filter } = get();
-       const note = res.note;
-       if (filter === 'active' && (note.isArchived || note.isTrashed)) {
-           set((state) => ({ notes: state.notes.filter(n => n._id !== id) }));
-       }
-       if (filter === 'archived' && (!note.isArchived || note.isTrashed)) {
-            set((state) => ({ notes: state.notes.filter(n => n._id !== id) }));
-       }
+      
+      // Remove from current view if status changed
+      const { filter, selectedFolderId } = get();
+      const note = res.note;
+      
+      if (filter === 'active' && (note.isArchived || note.isTrashed)) {
+        set((state) => ({ notes: state.notes.filter(n => n._id !== id) }));
+      }
+      if (filter === 'archived' && (!note.isArchived || note.isTrashed)) {
+        set((state) => ({ notes: state.notes.filter(n => n._id !== id) }));
+      }
+      
+      // If folder changed and we're filtering by folder, remove from view
+      const noteFolderId = typeof note.folder === 'object' ? note.folder?._id : note.folder;
+      if (selectedFolderId && noteFolderId !== selectedFolderId) {
+        set((state) => ({ notes: state.notes.filter(n => n._id !== id) }));
+      }
+      
+      // Refresh folder counts if folder changed
+      if (updatedData.folder !== undefined) {
+        refreshFolderCounts();
+      }
     } catch (error) {
       console.error(error);
     }
@@ -80,6 +110,9 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       set((state) => ({
         notes: state.notes.filter((n) => n._id !== id),
       }));
+      
+      // Refresh folder counts
+      refreshFolderCounts();
     } catch (error) {
       console.error(error);
     }
@@ -87,17 +120,25 @@ export const useNoteStore = create<NoteState>((set, get) => ({
 
   restoreNoteFromTrash: async (id) => {
     try {
-        await restoreNote(id);
-        set((state) => ({
-            notes: state.notes.filter((n) => n._id !== id),
-        }));
+      await restoreNote(id);
+      set((state) => ({
+        notes: state.notes.filter((n) => n._id !== id),
+      }));
+      
+      // Refresh folder counts
+      refreshFolderCounts();
     } catch (error) {
-        console.error(error);
+      console.error(error);
     }
   },
 
   setFilter: (filter) => {
-      set({ filter });
-      get().fetchNotes();
-  }
+    set({ filter, selectedFolderId: null });
+    get().fetchNotes();
+  },
+
+  setSelectedFolder: (folderId) => {
+    set({ selectedFolderId: folderId, filter: 'active' });
+    get().fetchNotes();
+  },
 }));

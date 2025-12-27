@@ -2,11 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useNoteStore } from "@/lib/noteStore";
+import { useFolderStore } from "@/lib/folderStore";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Pin, Sparkles, Tag, X, Plus, Loader2 } from "lucide-react";
+import { Pin, Sparkles, X, Plus, Loader2, FolderOpen, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface CreateNoteModalProps {
   open: boolean;
@@ -26,13 +33,16 @@ const colors = [
 ];
 
 export function CreateNoteModal({ open, onOpenChange, noteToEdit }: CreateNoteModalProps) {
-  const { addNote, editNote } = useNoteStore();
+  const { addNote, editNote, selectedFolderId } = useNoteStore();
+  const { folders } = useFolderStore();
+  
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [color, setColor] = useState("#ffffff");
   const [isPinned, setIsPinned] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
+  const [folderId, setFolderId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
@@ -42,10 +52,17 @@ export function CreateNoteModal({ open, onOpenChange, noteToEdit }: CreateNoteMo
       setColor(noteToEdit.color || "#ffffff");
       setIsPinned(noteToEdit.isPinned || false);
       setTags(noteToEdit.tags || []);
+      // Get folder ID from note
+      const noteFolderId = typeof noteToEdit.folder === 'object' 
+        ? noteToEdit.folder?._id 
+        : noteToEdit.folder;
+      setFolderId(noteFolderId || null);
     } else {
       resetForm();
+      // Set default folder to currently selected folder
+      setFolderId(selectedFolderId);
     }
-  }, [noteToEdit, open]);
+  }, [noteToEdit, open, selectedFolderId]);
 
   const resetForm = () => {
     setTitle("");
@@ -54,6 +71,7 @@ export function CreateNoteModal({ open, onOpenChange, noteToEdit }: CreateNoteMo
     setIsPinned(false);
     setTags([]);
     setNewTag("");
+    setFolderId(null);
   };
 
   const handleAddTag = () => {
@@ -73,9 +91,9 @@ export function CreateNoteModal({ open, onOpenChange, noteToEdit }: CreateNoteMo
     
     try {
       if (noteToEdit) {
-        await editNote(noteToEdit._id, { title, content, color, isPinned, tags });
+        await editNote(noteToEdit._id, { title, content, color, isPinned, tags, folder: folderId });
       } else {
-        await addNote({ title, content, color, isPinned, tags });
+        await addNote({ title, content, color, isPinned, tags, folder: folderId });
       }
       
       onOpenChange(false);
@@ -84,6 +102,8 @@ export function CreateNoteModal({ open, onOpenChange, noteToEdit }: CreateNoteMo
       setIsSubmitting(false);
     }
   };
+
+  const selectedFolder = folders.find(f => f._id === folderId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -136,6 +156,54 @@ export function CreateNoteModal({ open, onOpenChange, noteToEdit }: CreateNoteMo
               className="w-full min-h-[180px] resize-none border-none bg-transparent focus:outline-none focus:ring-0 text-sm leading-relaxed placeholder:text-muted-foreground/50"
               required
             />
+
+            {/* Folder selector */}
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-2 text-xs"
+                  >
+                    {selectedFolder ? (
+                      <>
+                        <div 
+                          className="w-2.5 h-2.5 rounded-sm"
+                          style={{ backgroundColor: selectedFolder.color }}
+                        />
+                        {selectedFolder.name}
+                      </>
+                    ) : (
+                      <>
+                        <FolderOpen className="w-3.5 h-3.5" />
+                        No folder
+                      </>
+                    )}
+                    <ChevronDown className="w-3 h-3 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuItem onClick={() => setFolderId(null)}>
+                    <FolderOpen className="w-3.5 h-3.5 mr-2" />
+                    No folder
+                  </DropdownMenuItem>
+                  {folders.map((folder) => (
+                    <DropdownMenuItem 
+                      key={folder._id}
+                      onClick={() => setFolderId(folder._id)}
+                    >
+                      <div 
+                        className="w-2.5 h-2.5 rounded-sm mr-2"
+                        style={{ backgroundColor: folder.color }}
+                      />
+                      {folder.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
             {/* Tags */}
             <div className="space-y-2">

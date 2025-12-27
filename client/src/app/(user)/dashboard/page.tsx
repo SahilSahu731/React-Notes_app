@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useNoteStore } from "@/lib/noteStore";
+import { useFolderStore } from "@/lib/folderStore";
+import { useSettingsStore } from "@/lib/settingsStore";
 import { Note } from "@/lib/noteService";
 import { CreateNoteModal } from "@/components/CreateNoteModal";
 import { NoteCard } from "@/components/NoteCard";
@@ -23,11 +25,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export default function Dashboard() {
-  const { notes, isLoading, fetchNotes, filter, setFilter } = useNoteStore();
+  const { notes, isLoading, fetchNotes, filter, setFilter, selectedFolderId } = useNoteStore();
+  const { folders } = useFolderStore();
+  const { viewMode, setViewMode } = useSettingsStore();
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | undefined>(undefined);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   useEffect(() => {
     fetchNotes(search);
@@ -53,6 +56,15 @@ export default function Dashboard() {
     trash: 'Trash',
   };
 
+  const selectedFolder = folders.find(f => f._id === selectedFolderId);
+
+  const getHeaderTitle = () => {
+    if (filter === 'trash') return 'Trash';
+    if (filter === 'archived') return 'Archive';
+    if (selectedFolderId && selectedFolder) return selectedFolder.name;
+    return 'All Notes';
+  };
+
   const totalNotes = filter === 'active' ? pinnedNotes.length + otherNotes.length : notes.length;
 
   return (
@@ -61,7 +73,7 @@ export default function Dashboard() {
       <header className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">{filterLabels[filter]}</h1>
+            <h1 className="text-2xl font-bold">{getHeaderTitle()}</h1>
             <p className="text-sm text-muted-foreground">
               {totalNotes} {totalNotes === 1 ? 'note' : 'notes'}
             </p>

@@ -39,6 +39,11 @@ const noteSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    folder: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Folder",
+      default: null, // null means no folder (root level)
+    },
   },
   { timestamps: true }
 );

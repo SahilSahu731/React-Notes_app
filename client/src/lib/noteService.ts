@@ -1,5 +1,5 @@
-
 import api from "./axios";
+import { Folder } from "./folderService";
 
 export interface Note {
   _id: string;
@@ -10,17 +10,27 @@ export interface Note {
   isArchived: boolean;
   isTrashed: boolean;
   color: string;
+  folder: string | Folder | null;
   updatedAt: string;
   createdAt: string;
 }
 
-export const getNotes = async (isTrashed?: boolean, isArchived?: boolean, search?: string) => {
-  const params = new URLSearchParams();
-  if (isTrashed !== undefined) params.append("isTrashed", String(isTrashed));
-  if (isArchived !== undefined) params.append("isArchived", String(isArchived));
-  if (search) params.append("search", search);
+export interface GetNotesParams {
+  isTrashed?: boolean;
+  isArchived?: boolean;
+  search?: string;
+  folder?: string | null;
+}
 
-  const response = await api.get(`/notes?${params.toString()}`);
+export const getNotes = async (params: GetNotesParams = {}) => {
+  const searchParams = new URLSearchParams();
+  
+  if (params.isTrashed !== undefined) searchParams.append("isTrashed", String(params.isTrashed));
+  if (params.isArchived !== undefined) searchParams.append("isArchived", String(params.isArchived));
+  if (params.search) searchParams.append("search", params.search);
+  if (params.folder) searchParams.append("folder", params.folder);
+
+  const response = await api.get(`/notes?${searchParams.toString()}`);
   return response.data;
 };
 

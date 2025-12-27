@@ -1,13 +1,12 @@
 import express from "express";
-import { changeProfilePicture, getUser } from "../controllers/user.controller.js";
+import { updateUserProfile, changePassword, deleteAccount, getUser } from "../controllers/user.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
-import upload from "../middlewares/multer.js";
 
 const router = express.Router();
 
 router.get('/profile', protect, getUser);
-router.post("/profile/change",protect, upload.single("avatar"), changeProfilePicture);
-
-
+router.put('/profile', protect, updateUserProfile);
+router.put('/profile/password', protect, changePassword);
+router.delete('/profile', protect, deleteAccount);
 
 export default router;

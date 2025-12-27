@@ -7,28 +7,33 @@ import User from "../models/user.model.js";
 // @access  Private
 export const getNotes = async (req, res) => {
   try {
-    const { isTrashed, isArchived, search } = req.query;
+    const { isTrashed, isArchived, search, folder } = req.query;
     
     let query = { owner: req.user.id };
 
     if (isTrashed !== undefined) {
       query.isTrashed = isTrashed === 'true';
     } else {
-        // By default, don't show trashed notes unless specifically asked
         query.isTrashed = false;
     }
 
     if (isArchived !== undefined) {
       query.isArchived = isArchived === 'true';
     }
-     // If not querying for archived specifically, usually we show active (non-archived) notes
-     // But let's handle that in frontend logic or make it flexible here. 
-     // For now, if isArchived is NOT provided, we might want to return everything or just active?
-     // Let's assume standard behavior: get main notes (not archived, not trashed) default.
-     if (isArchived === undefined && isTrashed === undefined) {
-         query.isArchived = false;
-         query.isTrashed = false;
-     }
+
+    if (isArchived === undefined && isTrashed === undefined) {
+        query.isArchived = false;
+        query.isTrashed = false;
+    }
+
+    // Filter by folder
+    if (folder) {
+      if (folder === 'none') {
+        query.folder = null; // Notes without folder
+      } else {
+        query.folder = folder;
+      }
+    }
 
     if (search) {
       query.$or = [
@@ -37,7 +42,9 @@ export const getNotes = async (req, res) => {
       ];
     }
 
-    const notes = await Note.find(query).sort({ isPinned: -1, updatedAt: -1 });
+    const notes = await Note.find(query)
+      .populate('folder', 'name color')
+      .sort({ isPinned: -1, updatedAt: -1 });
 
     res.status(200).json({ success: true, count: notes.length, notes });
   } catch (err) {
@@ -67,7 +74,7 @@ export const getNote = async (req, res) => {
 // @access  Private
 export const createNote = async (req, res) => {
   try {
-    const { title, content, tags, color, isPinned, isArchived } = req.body;
+    const { title, content, tags, color, isPinned, isArchived, folder } = req.body;
 
     const note = await Note.create({
       title,
@@ -76,6 +83,7 @@ export const createNote = async (req, res) => {
       color,
       isPinned,
       isArchived,
+      folder: folder || null,
       owner: req.user.id,
     });
 

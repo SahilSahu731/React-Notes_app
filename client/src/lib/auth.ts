@@ -56,16 +56,32 @@ export const authApi = {
   },
 
   getProfile: async () => {
-    const response = await api.get("/auth/profile");
+    const response = await api.get("/user/profile");
     return response.data;
   },
 
-  changeProfilePicture: async (data: FormData) => {
-    const response = await api.post("/user/profile/change", data, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+  updateProfile: async (data: { name?: string; email?: string; avatar?: string }) => {
+    const response = await api.put("/user/profile", data);
+    
+    // Update local store if successful
+    if (response.data.success) {
+      const { user } = response.data;
+      useAuthStore.getState().setUser(user);
+    }
+    
+    return response.data;
+  },
+
+  changePassword: async (data: { currentPassword: string; newPassword: string }) => {
+    const response = await api.put("/user/profile/password", data);
+    return response.data;
+  },
+
+  deleteAccount: async () => {
+    const response = await api.delete("/user/profile");
+    if (response.data.success) {
+      useAuthStore.getState().logout();
+    }
     return response.data;
   },
 };

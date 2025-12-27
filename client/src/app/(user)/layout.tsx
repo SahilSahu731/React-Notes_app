@@ -2,7 +2,7 @@
 
 import { useAuthStore } from '@/lib/store';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Navbar } from '@/components/navbar';
 import { Sidebar } from '@/components/sidebar';
 import { FileText, Loader2 } from 'lucide-react';
@@ -14,6 +14,7 @@ export default function UserLayout({
 }) {
   const { accessToken, user, hasHydrated } = useAuthStore();
   const router = useRouter();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -22,6 +23,22 @@ export default function UserLayout({
       router.push("/login");
     }
   }, [user, accessToken, hasHydrated, router]);
+
+  // Load sidebar state from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebar-collapsed');
+    if (saved === 'true') {
+      setSidebarCollapsed(true);
+    }
+  }, []);
+
+  const handleToggleSidebar = () => {
+    setSidebarCollapsed((prev) => {
+      const newValue = !prev;
+      localStorage.setItem('sidebar-collapsed', String(newValue));
+      return newValue;
+    });
+  };
 
   if (!hasHydrated) {
     return (
@@ -54,8 +71,11 @@ export default function UserLayout({
       <div className="relative z-10">
         <Navbar />
         <div className="flex">
-          <Sidebar />
-          <main className="flex-1 p-6 lg:p-8 min-h-[calc(100vh-4rem)] overflow-y-auto">
+          <Sidebar 
+            isCollapsed={sidebarCollapsed} 
+            onToggleCollapse={handleToggleSidebar}
+          />
+          <main className="flex-1 p-6 lg:p-8 min-h-[calc(100vh-3rem)] overflow-y-auto">
             <div className="max-w-7xl mx-auto">
               {children}
             </div>

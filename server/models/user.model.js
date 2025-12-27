@@ -47,7 +47,7 @@ const userSchema = new mongoose.Schema(
     bio: {
       type: String,
       maxlength: 200,
-      default: "Hey there! 👋 I'm using the Notes App.",
+      default: "Hey there!  I'm using the Notes App.",
     },
     website: String,
 

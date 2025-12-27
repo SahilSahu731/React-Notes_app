@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import adminRoutes from "./routes/admin.route.js";
 import noteRoutes from "./routes/note.route.js";
+import folderRoutes from "./routes/folder.route.js";
 
 const app = express();
 
@@ -76,6 +77,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/notes", noteRoutes);
+app.use("/api/v1/folders", folderRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
