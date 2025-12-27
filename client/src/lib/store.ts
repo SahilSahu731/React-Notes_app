@@ -6,7 +6,7 @@ export type User = {
   name: string;
   username: string;
   email: string;
-  avatar: string;
+  profilePicture: string; // Renamed from avatar to match backend
   bio: string;
   isVerified: boolean;
   role: string;
@@ -43,6 +43,7 @@ type AuthState = {
   hasHydrated: boolean;
   setAuth: (user: User, token: string) => void;
   setUser: (user: User) => void;
+  setProfilePicture: (url: string) => void;
   setLoading: (loading: boolean) => void;
   logout: () => void;
   setHasHydrated: (hasHydrated: boolean) => void;
@@ -57,7 +58,7 @@ export const useAuthStore = create<AuthState>()(
       hasHydrated: false,
       setAuth: (user, token) => set({ user, accessToken: token, isLoading: false }),
       setUser: (user) => set({ user }),
-      setProfilePicture: (profilePicture: string) => set({ user: { ...get().user!, avatar: profilePicture } }),
+      setProfilePicture: (profilePicture: string) => set({ user: { ...get().user!, profilePicture: profilePicture } }),
       setLoading: (loading) => set({ isLoading: loading }),
       logout: () => set({ user: null, accessToken: null, isLoading: false }),
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),

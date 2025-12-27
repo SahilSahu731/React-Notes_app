@@ -72,6 +72,23 @@ export const authApi = {
     return response.data;
   },
 
+  uploadAvatar: async (file: File) => {
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    const response = await api.put("/user/profile/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    if (response.data.success) {
+      useAuthStore.getState().setProfilePicture(response.data.profilePicture);
+    }
+
+    return response.data;
+  },
+
   changePassword: async (data: { currentPassword: string; newPassword: string }) => {
     const response = await api.put("/user/profile/password", data);
     return response.data;

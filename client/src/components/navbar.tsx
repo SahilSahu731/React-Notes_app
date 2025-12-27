@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import Link from 'next/link'
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
 export function Navbar() {
   const { user, logout } = useAuthStore()
 
@@ -69,9 +71,12 @@ export function Navbar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8 px-2 gap-1 hover:bg-accent">
-                <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary">
-                  {user?.name?.charAt(0).toUpperCase() || 'U'}
-                </div>
+                <Avatar className="w-6 h-6">
+                  <AvatarImage src={user?.profilePicture} className="object-cover" />
+                  <AvatarFallback className="bg-primary/20 text-xs font-medium text-primary">
+                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
                 <ChevronDown className="h-3 w-3 text-muted-foreground hidden sm:block" />
               </Button>
             </DropdownMenuTrigger>

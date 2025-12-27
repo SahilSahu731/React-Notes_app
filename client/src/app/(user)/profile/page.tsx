@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "@/lib/store";
 import { useNoteStore } from "@/lib/noteStore";
 import { useFolderStore } from "@/lib/folderStore";
@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, FileText, Folder, Mail, Shield, User as UserIcon, Lock, Trash2, Camera, UserMinus, LogOut } from "lucide-react";
+import { Calendar, FileText, Folder, Mail, Shield, User as UserIcon, Lock, Trash2, Camera, UserMinus, LogOut, Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -22,23 +22,22 @@ import { useRouter } from "next/navigation";
 export default function ProfilePage() {
   const router = useRouter();
   const { user, setUser, logout } = useAuthStore();
-  const { notes } = useNoteStore();
+  const { notes, fetchNotes } = useNoteStore();
   const { folders } = useFolderStore();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Profile Form State
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
-  const [avatar, setAvatar] = useState(user?.avatar || "");
-
+  
   // Password Form State
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  const { fetchNotes } = useNoteStore();
 
   useEffect(() => {
     fetchNotes();
@@ -50,12 +49,46 @@ export default function ProfilePage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await authApi.updateProfile({ name, email, avatar });
+      await authApi.updateProfile({ name, email });
       toast.success("Profile updated successfully");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    // Validate size (e.g., 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size should be less than 5MB");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      await authApi.uploadAvatar(file);
+      toast.success("Profile picture updated");
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Failed to upload profile picture");
+    } finally {
+      setIsUploading(false);
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -124,33 +157,39 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
-      {/* Header / Banner */}
-      <div className="relative">
-        <div className="h-48 rounded-xl bg-gradient-to-r from-primary/80 to-secondary/80 w-full object-cover shadow-lg" />
-        <div className="absolute -bottom-12 left-8 flex items-end gap-6">
-          <div className="relative group">
-            <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
-              <AvatarImage src={user.avatar} className="object-cover" />
-              <AvatarFallback className="text-4xl bg-muted">{user.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div className="absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white">
-              <Camera className="w-8 h-8" />
-            </div>
+      {/* Header - No Cover */}
+      <div className="flex flex-col md:flex-row items-center md:items-end gap-6 pb-8 border-b border-border">
+        <div className="relative group">
+          <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
+            <AvatarImage src={user.profilePicture} className="object-cover" />
+            <AvatarFallback className="text-4xl bg-muted">{user.name?.charAt(0)}</AvatarFallback>
+          </Avatar>
+          
+          <div 
+            onClick={handleAvatarClick}
+            className="absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white"
+          >
+            {isUploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Camera className="w-8 h-8" />}
           </div>
-          <div className="mb-2 space-y-1">
-            <h1 className="text-3xl font-bold">{user.name}</h1>
-            <p className="text-muted-foreground flex items-center gap-2">
-              <Mail className="w-4 h-4" /> {user.email}
-              <Badge variant="secondary" className="ml-2 lowercase h-5">{user.role}</Badge>
-            </p>
-          </div>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            accept="image/*"
+            onChange={handleFileChange}
+          />
         </div>
-        <div className="absolute right-8 bottom-4 flex gap-2">
-           {/* Actions if needed */}
+        
+        <div className="flex-1 text-center md:text-left space-y-2 mb-2">
+          <h1 className="text-3xl font-bold">{user.name}</h1>
+          <p className="text-muted-foreground flex items-center justify-center md:justify-start gap-2">
+            <Mail className="w-4 h-4" /> {user.email}
+            <Badge variant="secondary" className="ml-2 lowercase h-5">{user.role}</Badge>
+          </p>
         </div>
       </div>
 
-      <div className="mt-16">
+      <div className="mt-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -242,23 +281,6 @@ export default function ProfilePage() {
                         placeholder="your@email.com"
                       />
                     </div>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="avatar">Avatar URL</Label>
-                    <div className="relative">
-                      <Camera className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="avatar"
-                        value={avatar}
-                        onChange={(e) => setAvatar(e.target.value)}
-                        className="pl-9"
-                        placeholder="https://..."
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Paste a URL for your profile picture.
-                    </p>
                   </div>
 
                   <div className="flex justify-end pt-4">
@@ -365,7 +387,7 @@ export default function ProfilePage() {
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter>
-                        <Button variant="outline" onClick={(e) => { /* Close logic handled by trigger automatic closes? no */ }}>Cancel</Button>
+                        <Button variant="outline">Cancel</Button>
                         <Button variant="destructive" onClick={handleDeleteAccount} disabled={isLoading}>
                           {isLoading ? "Deleting..." : "Yes, delete account"}
                         </Button>

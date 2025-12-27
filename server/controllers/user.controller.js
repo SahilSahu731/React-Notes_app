@@ -1,6 +1,9 @@
 import User from "../models/user.model.js";
 import { validationResult } from "express-validator";
 import { generateToken } from "../utils/jwt.js";
+import cloudinary from "../config/cloudinary.js";
+import fs from "fs";
+import path from "path";
 
 export const register = async (req, res) => {
   console.log("[AUTH] Register attempt:", req.body.email);
@@ -143,6 +146,51 @@ export const updateUserProfile = async (req, res) => {
   } catch (err) {
     console.error("[USER] Update profile error:", err.message);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const updateAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      // Cleanup local file if user not found
+      if (req.file.path) fs.unlinkSync(req.file.path);
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "my-notes/avatars",
+      public_id: `avatar_${user._id}`,
+      overwrite: true,
+      transformation: [
+        { width: 500, height: 500, crop: "fill", gravity: "face" }
+      ]
+    });
+
+    // Remove local file
+    fs.unlinkSync(req.file.path);
+
+    // Update user
+    user.profilePicture = result.secure_url;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Avatar updated successfully",
+      profilePicture: user.profilePicture
+    });
+  } catch (err) {
+    console.error("[USER] Update avatar error:", err);
+    // Try to clean up local file
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
