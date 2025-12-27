@@ -13,9 +13,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+import { Toaster } from "react-hot-toast";
+
 export const metadata: Metadata = {
-  title: "QuickNotes",
-  description: "Your personal note-taking app",
+  title: "NoteFlow",
+  description: "Capture your thoughts, organize your life.",
 };
 
 export default function RootLayout({
@@ -30,6 +32,12 @@ export default function RootLayout({
       >
         <ThemeProvider defaultTheme="dark">
           {children}
+          <Toaster position="bottom-right" toastOptions={{
+            style: {
+              background: '#333',
+              color: '#fff',
+            },
+          }} />
         </ThemeProvider>
       </body>
     </html>

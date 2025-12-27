@@ -9,29 +9,86 @@ import connectDB from './config/db.js';
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import adminRoutes from "./routes/admin.route.js";
+import noteRoutes from "./routes/note.route.js";
 
 const app = express();
 
-app.use(helmet());
+// Define allowed origins for CORS
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  process.env.CLIENT_URL
+].filter(Boolean);
+
+console.log("[SERVER] Starting...");
+console.log("[SERVER] Allowed CORS Origins:", allowedOrigins);
+
+// CORS Configuration - This MUST be first
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman, curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.log("[CORS] Blocked origin:", origin);
+      return callback(new Error("Not allowed by CORS"), false);
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+}));
+
+// Security middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
+
+// Body parsers
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
-const limiter = rateLimit({ windowMs: 15*60*1000, max: 100 });
+// Rate limiting
+const limiter = rateLimit({ 
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 
+});
 app.use(limiter);
 
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    cors: {
+      allowedOrigins,
+      requestOrigin: req.headers.origin || "none"
+    }
+  });
+});
+
+// API Routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/notes", noteRoutes);
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("[ERROR]", err.message);
+  res.status(500).json({ message: "Internal server error", error: err.message });
+});
 
-// Connect to MongoDB database
+// Connect to MongoDB
 connectDB();
 
-// Define port
-const PORT = process.env.PORT || 5000;
-
 // Start server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`[SERVER] Running on port ${PORT}`);
+  console.log(`[SERVER] API Base URL: http://localhost:${PORT}/api/v1`);
 });
