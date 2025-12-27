@@ -20,11 +20,34 @@ const ThemeProviderContext = createContext<ThemeProviderState | undefined>(undef
 export function ThemeProvider({
   children,
   defaultTheme = 'dark',
-  storageKey = 'quicknotes-theme',
+  storageKey = 'noteflow-theme',
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme)
+  const [theme, setTheme] = useState<Theme>(() => {
+    // Check if we're on the client side
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(storageKey) as Theme | null
+      if (stored && ['dark', 'light', 'system'].includes(stored)) {
+        return stored
+      }
+    }
+    return defaultTheme
+  })
 
+  const [mounted, setMounted] = useState(false)
+
+  // Handle initial mount
+  useEffect(() => {
+    setMounted(true)
+    
+    // Read from localStorage on mount (for SSR hydration)
+    const stored = localStorage.getItem(storageKey) as Theme | null
+    if (stored && ['dark', 'light', 'system'].includes(stored)) {
+      setTheme(stored)
+    }
+  }, [storageKey])
+
+  // Apply theme to document
   useEffect(() => {
     const root = window.document.documentElement
     root.classList.remove('light', 'dark')
@@ -40,10 +63,20 @@ export function ThemeProvider({
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
-      setTheme(theme)
+    setTheme: (newTheme: Theme) => {
+      localStorage.setItem(storageKey, newTheme)
+      setTheme(newTheme)
     },
+  }
+
+  // Prevent flash of wrong theme by not rendering until mounted
+  // This ensures the correct theme class is applied before first paint
+  if (!mounted) {
+    return (
+      <ThemeProviderContext.Provider {...props} value={value}>
+        <div style={{ visibility: 'hidden' }}>{children}</div>
+      </ThemeProviderContext.Provider>
+    )
   }
 
   return (
